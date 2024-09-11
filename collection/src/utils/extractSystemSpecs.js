@@ -13,7 +13,7 @@ export function extractSystemSpecs(system_specs, jobResult) {
     cleanedString = cleanedString.replace(
       /"os_version":\s*""(.*?)""/,
       '"os_version": "$1"'
-    );//pizza    
+    ); 
 
     cleanedString = cleanedString.replaceAll("nan", "null");
     // Parse the string into an object
