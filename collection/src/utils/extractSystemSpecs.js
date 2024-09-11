@@ -2,6 +2,7 @@ export function extractSystemSpecs(system_specs, jobResult) {
   // Check if system_specs is defined and not empty
   if (!system_specs || system_specs.length === 0) {
     console.error("System specs are undefined or empty.");
+    console.log("Job details:", jobResult);
     return;
   }
 

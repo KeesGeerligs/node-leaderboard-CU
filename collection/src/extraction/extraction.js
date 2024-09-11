@@ -18,7 +18,10 @@ export async function extraction(id, job, nosana) {
 
   if (opStates[0].results) {
     const { system_specs } = opStates[0].results;
-    if (system_specs) extractSystemSpecs(system_specs, jobResult);
+    if (system_specs) {
+      extractSystemSpecs(system_specs, jobResult);
+      //console.log("Extracted System Specs:", jobResult.data.specs); // Log the system specs
+    }
     extractBenchmarkResults(opStates[0].results, jobResult);
     extractFromLogs(opStates[0].logs, jobResult);
   }

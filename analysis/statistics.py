@@ -2,6 +2,7 @@ import json
 import pandas as pd
 from collections import defaultdict
 import argparse
+import os
 
 # Define the mapping from market IDs to market names
 MARKET_MAP = {
@@ -113,6 +114,10 @@ def analyze_small_model_node_performance(performance_df):
 def analyze_model_performance(performance_df, model):
     model_df = performance_df[performance_df['Model'] == model]
     
+    results_dir = '../results'
+    if not os.path.exists(results_dir):
+        os.makedirs(results_dir)
+
     model_performance_summary = model_df.groupby(['Node', 'Market', 'GPU', 'CPU']).agg(
         MeanTokensPerSecond=('TokensPerSecond', 'mean'),
         TotalProducedTokens=('ProducedTokens', 'sum')
