@@ -24,9 +24,14 @@ export function extractBenchmarkResults(results, jobResult) {
         let totalDuration = 0;
         let totalRequestsMade = 0;
         let totalLatency = 0;
+        let totalInputTokens = 0;
+        let nosanaPrice = 0;
         let count = 0;
-        let concurrentUsers = parseInt(name.split('_')[2], 10); // Extract CU value from the name upfront
+        let concurrentUsers = parseInt(name.split('_')[2], 10);
         let modelName = "";
+        let avgClockSpeed = 0;
+        let avgPowerUsage = 0;
+        let avgUtilization = 0;
 
         modelResults.forEach((resultStr) => {
           try {
@@ -37,7 +42,12 @@ export function extractBenchmarkResults(results, jobResult) {
             totalDuration += parseFloat(modelData.total_duration);
             totalRequestsMade += parseInt(modelData.total_requests_made, 10);
             totalLatency += parseFloat(modelData.average_latency);
-            if (!modelName) modelName = modelData.model_name; // Only set modelName if it hasn't been set yet
+            totalInputTokens += parseInt(modelData.total_input_tokens, 10);
+            avgClockSpeed += parseFloat(modelData.avg_clock_speed);
+            avgPowerUsage += parseFloat(modelData.avg_power_usage);
+            avgUtilization += parseFloat(modelData.avg_utilization);
+            nosanaPrice = parseFloat(modelData.Nosana_Price); // Assuming price is constant for all entries in a category
+            if (!modelName) modelName = modelData.model_name;
             count++;
           } catch (error) {
             console.error(`Error parsing ${name} JSON:`, error.message);
@@ -45,6 +55,9 @@ export function extractBenchmarkResults(results, jobResult) {
         });
 
         const avgLatency = count > 0 ? totalLatency / count : 0;
+        avgClockSpeed /= count;
+        avgPowerUsage /= count;
+        avgUtilization /= count;
 
         jobResult.data.performance[name] = {
           totalDuration: parseFloat(totalDuration.toFixed(2)),
@@ -53,7 +66,12 @@ export function extractBenchmarkResults(results, jobResult) {
           averageTokensPerSecond: parseFloat((totalTokensProduced / totalDuration).toFixed(2)),
           averageLatency: parseFloat(avgLatency.toFixed(2)),
           concurrentUsers: concurrentUsers,
-          modelName: modelName
+          modelName: modelName,
+          totalInputTokens: totalInputTokens,
+          NosanaPrice: nosanaPrice,
+          AvgClockSpeed: parseFloat(avgClockSpeed.toFixed(2)),
+          AvgPowerUsage: parseFloat(avgPowerUsage.toFixed(2)),
+          AvgUtilization: parseFloat(avgUtilization.toFixed(2))
         };
       } else {
         // Process non-CU results
