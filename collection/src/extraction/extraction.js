@@ -6,8 +6,10 @@ import { extractBenchmarkResults } from "../utils/extractBenchmarkResults.js";
 export async function extraction(id, job, nosana) {
   const jobResult = {
     job_id: id,
-    node: job.node.toString(),
-    market: job.market.toString(),
+    node: job.node.toString(), 
+    market: job.market.toString(), 
+    price: job.price.toString(), 
+    duration: (job.timeEnd - job.timeStart).toString(), 
     data: {
       specs: {},
       performance: {},
