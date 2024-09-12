@@ -26,6 +26,7 @@ export function extractBenchmarkResults(results, jobResult) {
         let totalLatency = 0;
         let count = 0;
         let concurrentUsers = parseInt(name.split('_')[2], 10); // Extract CU value from the name upfront
+        let modelName = "";
 
         modelResults.forEach((resultStr) => {
           try {
@@ -36,6 +37,7 @@ export function extractBenchmarkResults(results, jobResult) {
             totalDuration += parseFloat(modelData.total_duration);
             totalRequestsMade += parseInt(modelData.total_requests_made, 10);
             totalLatency += parseFloat(modelData.average_latency);
+            if (!modelName) modelName = modelData.model_name; // Only set modelName if it hasn't been set yet
             count++;
           } catch (error) {
             console.error(`Error parsing ${name} JSON:`, error.message);
@@ -51,6 +53,7 @@ export function extractBenchmarkResults(results, jobResult) {
           averageTokensPerSecond: parseFloat((totalTokensProduced / totalDuration).toFixed(2)),
           averageLatency: parseFloat(avgLatency.toFixed(2)),
           concurrentUsers: concurrentUsers,
+          modelName: modelName
         };
       } else {
         // Process non-CU results
