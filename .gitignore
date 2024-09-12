@@ -5,3 +5,4 @@ collection/node_modules/
 /venv
 
 /results
+collection/snapshots/09-08-mainnet-jobs.json
