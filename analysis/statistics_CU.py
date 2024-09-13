@@ -20,7 +20,8 @@ MARKET_MAP = {
     "CA5pMpqkYFKtme7K31pNB1s62X2SdhEv1nN9RdxKCpuQ": "3090",
     "7AtiXMSH6R1jjBxrcYjehCkkSF7zvYWte63gwEDBcGHq": "3060",
     "RXP7JK8MTY4uPJng4UjC9ZJdDDSG6wGr8pvVf3mwgXF": "3070",
-    "3EWVbggirRpDY2npzPDA7k21yzwz5wgwGxVVv6zCnRpa": "Laptop"
+    "3EWVbggirRpDY2npzPDA7k21yzwz5wgwGxVVv6zCnRpa": "Laptop",
+    "F3aGGSMb73XHbJbDXVbcXo7iYM9fyevvAZGQfwgrnWtB": "A100 40GB"
 }
 
 # Load JSON data from file
@@ -90,7 +91,7 @@ def extract_performance_data(data):
             "StartupTime": calculate_startup_time(duration, total_cu_duration),
             "ModelName": None,
             "NosanaPrice": nosana_price,
-            "GPU_Price_Per_Hour": None
+            "GPU-Price-Per-Hour": None
         }
 
         # Iterate over each CU configuration
@@ -112,8 +113,8 @@ def extract_performance_data(data):
             price_per_million_tokens, netto_token_per_second, gpu_price_per_hour = calculate_price_per_million_tokens(
                 total_tokens_produced, total_input_tokens, total_duration, price, nosana_price)
 
-            if cu_metrics["GPU_Price_Per_Hour"] is None:
-                cu_metrics["GPU_Price_Per_Hour"] = gpu_price_per_hour
+            if cu_metrics["GPU-Price-Per-Hour"] is None:
+                cu_metrics["GPU-Price-Per-Hour"] = gpu_price_per_hour
 
             cu_prefix = f"CU{cu_count}"
             cu_metrics.update({

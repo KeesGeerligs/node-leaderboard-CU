@@ -1,5 +1,5 @@
 export function extractBenchmarkResults(results, jobResult) {
-  console.log("Input Results:", JSON.stringify(results, null, 2));
+  //console.log("Input Results:", JSON.stringify(results, null, 2));
 
   const resultCategories = [
     "results_CU_100",
@@ -103,5 +103,5 @@ export function extractBenchmarkResults(results, jobResult) {
       }
     }
   });
-  console.log("Final JobResult:", JSON.stringify(jobResult, null, 2));
+  //console.log("Final JobResult:", JSON.stringify(jobResult, null, 2));
 }

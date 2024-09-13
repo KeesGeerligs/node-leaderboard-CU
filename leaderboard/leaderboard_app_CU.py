@@ -5,7 +5,7 @@ import os
 # Load the CSV file
 results_dir = 'results'
 benchmark_file = 'CU_benchmark_results_Nosana.csv'
-benchmark_data = pd.read_csv(os.path.join(results_dir, benchmark_file))
+benchmark_data = pd.read_csv(os.path.join(results_dir, benchmark_file), dtype={'Market': str})
 
 def get_cu_columns():
     cu_columns = [col for col in benchmark_data.columns if 'MeanTokensPerSecond' in col]
@@ -13,80 +13,90 @@ def get_cu_columns():
     cu_configs = [f"Concurrent User {cu}" for cu in cu_configs]
     return cu_configs
 
-def load_cu_data(cu):
+def get_models():
+    return sorted(benchmark_data['ModelName'].unique())
+
+def get_markets():
+    return sorted(benchmark_data['Market'].unique())
+
+def load_cu_data(cu, model, market):
     cu_number = cu.split()[-1]  # Extract the CU number (e.g., '1', '5', '100')
     cu_columns = [col for col in benchmark_data.columns if col.startswith(f'CU{cu_number}_')]
-    common_columns = ['Node', 'Market', 'StartupTime', 'ModelName', 'NosanaPrice', 'GPU_Price_Per_Hour']
+    common_columns = ['Node', 'Market', 'StartupTime', 'ModelName', 'NosanaPrice', 'GPU-Price-Per-Hour']
     columns_to_select = common_columns + cu_columns
     cu_data = benchmark_data[columns_to_select].copy()
 
+    # Filter by model and market
+    if model:
+        cu_data = cu_data[cu_data['ModelName'] == model]
+    if market:
+        cu_data = cu_data[cu_data['Market'] == market]
+
     # Rename CU-specific columns with spaces and full words
     column_mapping = {
-        'MeanTokensPerSecond': 'Tokens Per Second',
-        'NettoTokensPerSecond': 'Total Tokens Per Second',
-        'AverageLatency': 'Latency',
-        'PricePerMillionTokens': 'Price Per Million Tokens',
-        'AvgClockSpeed': 'Clock Speed',
-        'AvgPowerUsage': 'Power Usage',
-        'GPU_Price_Per_Hour': 'GPU Price Per Hour',
-        'ModelName': 'Model Name',  # Renaming ModelName to Model Name
-        'StartupTime': 'Startup Time Seconds',  # Renaming StartupTime to Startup Time Seconds
-        'NosanaPrice': 'Nosana Price'  # Renaming NosanaPrice to Nosana Price
+        'MeanTokensPerSecond': 'Output Speed (Output Tokens/s)',
+        'NettoTokensPerSecond': 'Total Speed (Output+Input Tokens/s)',
+        'AverageLatency': 'Latency (s)',
+        'PricePerMillionTokens': 'Price ($ per 1M Tokens)',
+        'AvgClockSpeed': 'Clock Speed (GHz)',  # Assuming the unit is GHz, adjust if needed
+        'AvgPowerUsage': 'Power Usage (W)',  # Assuming the unit is watts, adjust if needed
+        'GPU-Price-Per-Hour': 'GPU Price ($/h)',
+        'ModelName': 'Model Name',
+        'StartupTime': 'Startup Time (s)',
+        'NosanaPrice': 'NOS ($)'
     }
-    
+
     cu_data.columns = [col.replace(f'CU{cu_number}_', '').replace('_', ' ') for col in cu_data.columns]
     cu_data.rename(columns=column_mapping, inplace=True)
 
-    # Round all numeric values except for 'GPU Price Per Hour', 'Nosana Price', 'Latency', and 'Price Per Million Tokens'
-    for column in cu_data.columns:
-        if column not in ['GPU Price Per Hour', 'Nosana Price', 'Latency', 'Price Per Million Tokens']:
-            cu_data[column] = pd.to_numeric(cu_data[column], errors='coerce').round(0).fillna(cu_data[column]).astype('Int64', errors='ignore')
+    formatter = {}
+    for col in cu_data.columns:
+        if col == 'Market':  # Skip formatting for the 'Market' column
+            continue
+        elif cu_data[col].dtype == 'float64':
+            formatter[col] = lambda x: f"{x:.2f}" if pd.notna(x) else ""
+        elif cu_data[col].dtype == 'int64':
+            formatter[col] = lambda x: f"{x:.0f}" if pd.notna(x) else ""
 
-    # Reorder the columns and exclude 'Utilization'
+    if 'Output Speed (Output Tokens/s)' in cu_data.columns:
+        cu_data = cu_data.sort_values(by='Output Speed (Output Tokens/s)', ascending=False)
+
     column_order = [
-        'Node', 'Market', 'Model Name', 'Startup Time Seconds', 'GPU Price Per Hour', 'Nosana Price', 'Tokens Per Second',
-        'Total Tokens Per Second', 'Latency', 'Price Per Million Tokens', 
-        'Clock Speed', 'Power Usage'
+        'Node', 'Market', 'Model Name', 'GPU Price ($/h)', 'NOS ($)',
+        'Output Speed (Output Tokens/s)', 'Total Speed (Output+Input Tokens/s)', 'Latency (s)',
+        'Price ($ per 1M Tokens)', 'Clock Speed (GHz)', 'Power Usage (W)'
     ]
-    
+
     return cu_data[[col for col in column_order if col in cu_data.columns]]
+
 
 st.set_page_config(page_title="Concurrent User Leaderboard", page_icon=":trophy:", layout="wide")
 
-# Nosana CSS Styling
-st.markdown(
-    """
+st.markdown("""
     <style>
-    body {
+    html, body, [class*="View"] {
         font-family: 'Space Grotesk', sans-serif;
-        background-color: #010c04;  /* Nosana background color */
+        background-color: #010c04; /* Nosana background color */
         color: #FFFFFF;
     }
-    h1 {
-        font-family: 'Space Mono', monospace;
-        color: #FFFFFF; /* Adjusting header color to white */
-    }
-    .stSelectbox, .stButton>button {
+    .stButton>button {
         font-family: 'Space Grotesk', sans-serif;
         color: #5FFF00;
         background-color: #010c04;
     }
-    .css-2trqyj {
-        font-family: 'Space Grotesk', sans-serif;
+    .stDataFrame, .stDataFrame th, .stDataFrame td {
+        font-family: 'Space Mono', monospace; /* Ensuring consistent font for all text */
+        color: #FFFFFF;
+        font-size: 16px; /* Ensuring readable font size */
+        table-layout: fixed; /* Ensuring the table layout respects column width */
+        word-wrap: break-word; /* Ensuring text in headers doesn't overflow */
+        min-width: 120px; /* Minimum width for each column */
     }
-    /* Specific styling for dataframe */
-    .dataframe-container table {
-        font-family: 'Space Mono', monospace;
-    }
-    .dataframe-container th {
-        font-family: 'Space Mono', monospace;  /* Setting table headers font */
-        color: #FFFFFF;  /* Making table headers white */
-        background-color: #010c04;  /* Ensuring background matches Nosana style */
-    }
+    header { visibility: hidden; }
+    footer { visibility: hidden; }
+    .reportview-container .main .block-container { padding-top: 0; }
     </style>
-    """,
-    unsafe_allow_html=True
-)
+    """, unsafe_allow_html=True)
 
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
@@ -96,47 +106,48 @@ with col2:
 st.markdown("<h1 style='text-align: center;'>Concurrent User Leaderboard</h1>", unsafe_allow_html=True)
 
 cu_configs = get_cu_columns()
+models = get_models()
+markets = get_markets()
 
-# CU dropdown menu (sorted and formatted)
-selected_cu = st.selectbox('Select Concurrent User Configuration', cu_configs)
+# Select Concurrent User Configuration, Model, and Market
+selected_cu = st.selectbox('Select Concurrent User Configuration', cu_configs, index=cu_configs.index('Concurrent User 100'))
+selected_model = st.selectbox('Select Model', models, index=models.index('llama3.1_8B_4x'))
+selected_market = st.selectbox('Select Market', markets, index=markets.index('4090'))
 
-# Load and display data for the selected CU configuration
-cu_data = load_cu_data(selected_cu)
 
-# Display the styled leaderboard
-st.dataframe(cu_data, width=1800)  # Adjust width as needed
+cu_data = load_cu_data(selected_cu, selected_model, selected_market)
 
-# Calculate and display the total number of jobs and nodes
+
+formatter = {}
+for col in cu_data.columns:
+    if cu_data[col].dtype == 'float64':  # Assuming your decimal columns are float type
+        formatter[col] = lambda x: f"{x:.2f}" if pd.notna(x) else ""  # Retain two decimal places
+    elif cu_data[col].dtype == 'int64':
+        formatter[col] = lambda x: f"{x:.0f}" if pd.notna(x) else ""  # No commas for integers
+
+st.dataframe(cu_data.style.format(formatter), width=1800)
+
 total_jobs = cu_data.shape[0]
 total_nodes = cu_data['Node'].nunique()
 
-# Counter widgets for jobs and nodes
-col1, col2, col3 = st.columns([11, 3, 3])
+col1, col2, col3, col4 = st.columns([10, 3, 3, 10])
 col2.metric(label="Total Jobs", value=total_jobs)
 col3.metric(label="Total Nodes", value=total_nodes)
 
-# Add a description about the leaderboard
-st.markdown(
-    """
+st.markdown("""
     <div style="text-align: center; margin-bottom: 20px;">
         <p>
             This leaderboard showcases the performance of nodes based on their Concurrent User-specific Large Language Model benchmarking results.
             Each node is evaluated based on the selected concurrent user configuration's tokens per second, total tokens, and other metrics.
         </p>
         <p>
-            Use the dropdown menu above to view results for different concurrent user configurations.
+            Use the dropdown menus above to view results for different concurrent user configurations, models, and markets.
         </p>
     </div>
-    """,
-    unsafe_allow_html=True
-)
+    """, unsafe_allow_html=True)
 
-
-st.markdown(
-    """
-    <footer style='text-align: center; color: #FFFFFF; font-family: "Space Grotesk", sans-serif;'>
+st.markdown("""
+    <footer style='text-align: center; color: #FFFFFF; font-family: "Space Mono", monospace;'>
         © NOSANA 2024. All rights reserved.
     </footer>
-    """,
-    unsafe_allow_html=True
-)
+    """, unsafe_allow_html=True)
