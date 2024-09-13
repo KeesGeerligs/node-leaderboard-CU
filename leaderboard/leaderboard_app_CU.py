@@ -17,7 +17,9 @@ def get_models():
     return sorted(benchmark_data['ModelName'].unique())
 
 def get_markets():
-    return sorted(benchmark_data['Market'].unique())
+    markets = sorted(benchmark_data['Market'].unique())
+    markets.insert(0, 'All markets combined')
+    return markets
 
 def load_cu_data(cu, model, market):
     cu_number = cu.split()[-1]  # Extract the CU number (e.g., '1', '5', '100')
@@ -25,11 +27,13 @@ def load_cu_data(cu, model, market):
     common_columns = ['Node', 'Market', 'StartupTime', 'ModelName', 'NosanaPrice', 'GPU-Price-Per-Hour']
     columns_to_select = common_columns + cu_columns
     cu_data = benchmark_data[columns_to_select].copy()
+    # Drop rows with any missing values in the relevant columns
+    cu_data.dropna(subset=cu_columns + common_columns, inplace=True)
 
-    # Filter by model and market
+
     if model:
         cu_data = cu_data[cu_data['ModelName'] == model]
-    if market:
+    if market and market != 'All markets combined':
         cu_data = cu_data[cu_data['Market'] == market]
 
     # Rename CU-specific columns with spaces and full words
@@ -112,7 +116,7 @@ markets = get_markets()
 # Select Concurrent User Configuration, Model, and Market
 selected_cu = st.selectbox('Select Concurrent User Configuration', cu_configs, index=cu_configs.index('Concurrent User 100'))
 selected_model = st.selectbox('Select Model', models, index=models.index('llama3.1_8B_4x'))
-selected_market = st.selectbox('Select Market', markets, index=markets.index('4090'))
+selected_market = st.selectbox('Select Market', markets, index=0)
 
 
 cu_data = load_cu_data(selected_cu, selected_model, selected_market)
