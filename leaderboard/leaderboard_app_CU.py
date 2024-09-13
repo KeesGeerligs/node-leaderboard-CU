@@ -100,7 +100,7 @@ st.markdown("""
 
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
-    logo_path = 'Nosana_Logo_horizontal_color_white.png'
+    logo_path = 'results/Nosana_Logo_horizontal_color_white.png'
     st.image(logo_path, width=800)
 
 st.markdown("<h1 style='text-align: center;'>Concurrent User Leaderboard</h1>", unsafe_allow_html=True)
