@@ -47,7 +47,8 @@ def load_cu_data(cu, model, market):
         'GPU-Price-Per-Hour': 'GPU Price ($/h)',
         'ModelName': 'Model Name',
         'StartupTime': 'Startup Time (s)',
-        'NosanaPrice': 'NOS ($)'
+        'NosanaPrice': 'NOS ($)',
+        'EndUserSpeed': 'End User Speed (Output Tokens/s)'
     }
 
     cu_data.columns = [col.replace(f'CU{cu_number}_', '').replace('_', ' ') for col in cu_data.columns]
@@ -67,7 +68,7 @@ def load_cu_data(cu, model, market):
 
     column_order = [
         'Node', 'Market', 'Model Name', 'GPU Price ($/h)', 'NOS ($)',
-        'Output Speed (Output Tokens/s)', 'Total Speed (Output+Input Tokens/s)', 'Latency (s)',
+        'Output Speed (Output Tokens/s)', 'End User Speed (Output Tokens/s per CU)', 'Total Speed (Output+Input Tokens/s)', 'Latency (s)',
         'Price ($ per 1M Tokens)', 'Clock Speed (GHz)', 'Power Usage (W)'
     ]
 

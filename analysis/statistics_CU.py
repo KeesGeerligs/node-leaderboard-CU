@@ -109,6 +109,8 @@ def extract_performance_data(data):
 
             cu_metrics["ModelName"] = model_name
 
+            end_user_speed = tokens_per_second / cu_count if cu_count > 0 else 0
+
             # Calculate price per million tokens and netto token per second
             price_per_million_tokens, netto_token_per_second, gpu_price_per_hour = calculate_price_per_million_tokens(
                 total_tokens_produced, total_input_tokens, total_duration, price, nosana_price)
@@ -127,7 +129,8 @@ def extract_performance_data(data):
                 f"{cu_prefix}_AvgPowerUsage": avg_power_usage,
                 f"{cu_prefix}_AvgUtilization": avg_utilization,
                 f"{cu_prefix}_PricePerMillionTokens": price_per_million_tokens,
-                f"{cu_prefix}_NettoTokensPerSecond": netto_token_per_second
+                f"{cu_prefix}_NettoTokensPerSecond": netto_token_per_second,
+                f"{cu_prefix}_EndUserSpeed": end_user_speed
             })
 
         performance_data.append(cu_metrics)
