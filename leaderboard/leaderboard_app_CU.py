@@ -68,7 +68,7 @@ def load_cu_data(cu, model, market):
 
     column_order = [
         'Node', 'Market', 'Model Name', 'GPU Price ($/h)', 'NOS ($)',
-        'Output Speed (Output Tokens/s)', 'End User Speed (Output Tokens/s per CU)', 'Total Speed (Output+Input Tokens/s)', 'Latency (s)',
+        'Output Speed (Output Tokens/s)', 'End User Speed (Output Tokens/s)', 'Total Speed (Output+Input Tokens/s)', 'Latency (s)',
         'Price ($ per 1M Tokens)', 'Clock Speed (GHz)', 'Power Usage (W)'
     ]
 
