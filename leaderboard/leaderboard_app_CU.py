@@ -14,7 +14,8 @@ def get_cu_columns():
     return cu_configs
 
 def get_models():
-    return sorted(benchmark_data['ModelName'].unique())
+    return sorted(benchmark_data['ModelName'].astype(str).unique())
+
 
 def get_markets():
     markets = sorted(benchmark_data['Market'].unique())

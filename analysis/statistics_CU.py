@@ -102,6 +102,11 @@ def extract_performance_data(data):
             total_duration = metrics.get("totalDuration", 0)
             average_latency = metrics.get("averageLatency", 0)
             total_input_tokens = metrics.get("totalInputTokens", 0)
+
+            if total_input_tokens > total_tokens_produced:
+                print(f"Discarding job {job_id} due to excessive input tokens.")
+                continue
+
             avg_clock_speed = metrics.get("AvgClockSpeed", 0)
             avg_power_usage = metrics.get("AvgPowerUsage", 0)
             avg_utilization = metrics.get("AvgUtilization", 0)
