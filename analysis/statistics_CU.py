@@ -61,6 +61,7 @@ def calculate_price_per_million_tokens(produced_tokens, input_tokens, total_dura
 # Extract performance data from the JSON
 def extract_performance_data(data):
     performance_data = []
+    node_output_tokens_map = {}
     
     for job_id, job in data.items():
         if not has_valid_performance_data(job):
@@ -94,6 +95,7 @@ def extract_performance_data(data):
             "GPU-Price-Per-Hour": None
         }
 
+
         # Iterate over each CU configuration
         for cu_key, metrics in performance.items():
             cu_count = metrics.get("concurrentUsers", 0)
@@ -103,9 +105,16 @@ def extract_performance_data(data):
             average_latency = metrics.get("averageLatency", 0)
             total_input_tokens = metrics.get("totalInputTokens", 0)
 
-            if total_input_tokens > total_tokens_produced:
-                print(f"Discarding job {job_id} due to excessive input tokens.")
-                continue
+
+            if total_input_tokens > total_tokens_produced*2:
+                #print(f"The job had {total_tokens_produced} output tokens. Discarding job {job_id} due to imbalance input/output. From the following node: \n {node_id}")
+                
+
+                if node_id not in node_output_tokens_map:
+                    node_output_tokens_map[node_id] = []
+                
+                node_output_tokens_map[node_id].append(total_tokens_produced)
+                continue 
 
             avg_clock_speed = metrics.get("AvgClockSpeed", 0)
             avg_power_usage = metrics.get("AvgPowerUsage", 0)
@@ -140,6 +149,11 @@ def extract_performance_data(data):
 
         performance_data.append(cu_metrics)
 
+
+
+    #print("\nNodes with way more input tokens than output tokens:")
+    #for node, output_tokens_list in node_output_tokens_map.items():
+        #print(f"Node: {node}, Total Output Tokens: {output_tokens_list}")
     return pd.DataFrame(performance_data)
 
 # Main function to process data and save to CSV
@@ -161,8 +175,8 @@ def main():
     performance_summary_file = os.path.join(results_dir, 'CU_benchmark_results_Nosana.csv')
     performance_df.to_csv(performance_summary_file, index=False)
 
-    print("\nCompressed Performance Summary:")
-    print(performance_df.to_string(index=False))
+    #print("\nCompressed Performance Summary:")
+    #print(performance_df.to_string(index=False))
 
 if __name__ == "__main__":
     main()
