@@ -143,7 +143,6 @@ total_jobs = cu_data.shape[0]
 total_nodes = cu_data['Node'].nunique()
 
 col1, col2, col3, col4 = st.columns([10, 3, 3, 10])
-col2.metric(label="Total Jobs", value=total_jobs)
 col3.metric(label="Total Nodes", value=total_nodes)
 
 st.markdown("""
