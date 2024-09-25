@@ -28,14 +28,18 @@ def load_cu_data(cu, model, market):
     common_columns = ['Node', 'Market', 'StartupTime', 'ModelName', 'NosanaPrice', 'GPU-Price-Per-Hour']
     columns_to_select = common_columns + cu_columns
     cu_data = benchmark_data[columns_to_select].copy()
+    
     # Drop rows with any missing values in the relevant columns
     cu_data.dropna(subset=cu_columns + common_columns, inplace=True)
-
 
     if model:
         cu_data = cu_data[cu_data['ModelName'] == model]
     if market and market != 'All markets combined':
         cu_data = cu_data[cu_data['Market'] == market]
+
+    # **Keep only the most recent job per node**
+    # Since the CSV is ordered by time, we just drop duplicates based on 'Node', keeping the last occurrence
+    cu_data = cu_data.drop_duplicates(subset='Node', keep='last')
 
     # Rename CU-specific columns with spaces and full words
     column_mapping = {
@@ -55,6 +59,7 @@ def load_cu_data(cu, model, market):
     cu_data.columns = [col.replace(f'CU{cu_number}_', '').replace('_', ' ') for col in cu_data.columns]
     cu_data.rename(columns=column_mapping, inplace=True)
 
+    # Format the data for display
     formatter = {}
     for col in cu_data.columns:
         if col == 'Market':  # Skip formatting for the 'Market' column
@@ -74,6 +79,7 @@ def load_cu_data(cu, model, market):
     ]
 
     return cu_data[[col for col in column_order if col in cu_data.columns]]
+
 
 
 st.set_page_config(page_title="Concurrent User Leaderboard", page_icon=":trophy:", layout="wide")
